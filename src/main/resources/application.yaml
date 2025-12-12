@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: queen
+  ai:
+    openai:
+      api-key: ${GROQ_API_KEY}
+      base-url: https://api.groq.com/openai
+      chat:
+        options:
+          model: meta-llama/llama-4-maverick-17b-128e-instruct
+          temperature: 0.3

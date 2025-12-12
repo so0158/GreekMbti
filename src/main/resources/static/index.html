@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBTI 그리스 신화 테스트</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 시작 화면 -->
+        <div id="start-screen" class="screen active">
+            <h1>당신은 어떤 그리스 신화 인물인가요?</h1>
+            <p class="subtitle">MBTI 테스트를 통해 당신과 닮은 그리스 신화 속 인물을 찾아보세요!</p>
+            <button onclick="startTest()" class="btn-primary">테스트 시작하기</button>
+        </div>
+
+        <!-- 질문 화면 -->
+        <div id="question-screen" class="screen">
+            <div class="progress-bar">
+                <div id="progress" class="progress-fill"></div>
+            </div>
+            <div class="question-counter">
+                <span id="current-question">1</span> / <span id="total-questions">12</span>
+            </div>
+            <div class="question-container">
+                <h2 id="question-text" class="question-text"></h2>
+                <div class="answer-buttons">
+                    <button onclick="selectAnswer('A')" class="btn-answer" id="answer-a"></button>
+                    <button onclick="selectAnswer('B')" class="btn-answer" id="answer-b"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 결과 화면 -->
+        <div id="result-screen" class="screen">
+            <h1>당신의 그리스 신화 인물은...</h1>
+            <div class="result-card">
+                <div class="mbti-badge" id="mbti-type"></div>
+                <h2 id="character-name" class="character-name"></h2>
+                <div class="character-image" id="character-image">🏛️</div>
+                <p id="character-description" class="character-description"></p>
+                <div class="character-traits">
+                    <h3>주요 특징</h3>
+                    <ul id="character-traits-list"></ul>
+                </div>
+            </div>
+            <button onclick="restartTest()" class="btn-primary">다시 테스트하기</button>
+        </div>
+    </div>
+
+    <script src="js/mbti.js"></script>
+</body>
+</html>
