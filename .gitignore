@@ -3,3 +3,5 @@ build/
 node_modules/
 *.env
 application-local.yaml
+application-local.properties
+.env.local
