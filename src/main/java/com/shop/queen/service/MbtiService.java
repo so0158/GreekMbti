@@ -26,26 +26,40 @@ public class MbtiService {
 
     // 테스트 시작 시 20개 질문을 한 번에 생성
     public AllQuestionsResponse generateAllQuestions() {
-        String prompt = """
+        // 랜덤 시드를 추가해서 매번 다른 질문 생성
+        long timestamp = System.currentTimeMillis();
+
+        String prompt = String.format("""
                 You are an MBTI test expert creating questions for a personality test.
 
-                [CRITICAL] You MUST respond ONLY in Korean.
+                [CRITICAL INSTRUCTIONS]
+                1. You MUST respond ONLY in Korean
+                2. Create COMPLETELY NEW and CREATIVE questions - DO NOT use common MBTI questions
+                3. Every time you generate questions, make them DIFFERENT from previous ones
+                4. Be creative and think of unique life situations
+
+                [GENERATION ID: %d - Use this to create unique questions]
 
                 Create 20 MBTI questions following these rules:
 
                 [REQUIREMENTS]
                 1. Create general life situation questions (NOT Greek mythology themed)
-                2. Questions should be about everyday life, work, relationships, hobbies, etc.
+                2. Questions should be about: everyday life, work, relationships, hobbies, food, travel, entertainment, shopping, study, family, etc.
                 3. All content MUST be in Korean
                 4. Keep each question under 40 Korean characters
                 5. Keep each answer under 50 Korean characters
-                6. Make each question unique and different from typical MBTI questions
+                6. Make each question UNIQUE and CREATIVE - avoid typical MBTI questions
+                7. Use diverse situations and scenarios
 
                 [QUESTION DISTRIBUTION]
                 - Questions 1, 5, 9, 13, 17: E vs I (외향 vs 내향)
+                  Example situations: parties, meetings, phone calls, social media, group activities
                 - Questions 2, 6, 10, 14, 18: S vs N (감각 vs 직관)
+                  Example situations: reading, planning, problem-solving, learning, observing
                 - Questions 3, 7, 11, 15, 19: T vs F (사고 vs 감정)
+                  Example situations: conflicts, decisions, advice, criticism, teamwork
                 - Questions 4, 8, 12, 16, 20: J vs P (판단 vs 인식)
+                  Example situations: deadlines, schedules, trips, organizing, spontaneity
 
                 Response Format (in Korean):
                 질문1: [question] | 답변A: [answer] | 유형: E | 답변B: [answer] | 유형: I
@@ -54,10 +68,10 @@ public class MbtiService {
                 질문4: [question] | 답변A: [answer] | 유형: J | 답변B: [answer] | 유형: P
                 ... (continue to 질문20)
 
-                Example:
-                질문1: 주말에 에너지를 충전하는 방법은? | 답변A: 친구들을 만나거나 사람들과 어울린다 | 유형: E | 답변B: 집에서 혼자만의 시간을 보낸다 | 유형: I
-                질문2: 대화할 때 주로 | 답변A: 구체적인 사실과 경험을 이야기한다 | 유형: S | 답변B: 추상적인 개념이나 가능성을 이야기한다 | 유형: N
-            """;
+                Example (DO NOT copy these - create NEW questions):
+                질문1: SNS에 사진을 올렸을 때 | 답변A: 댓글과 좋아요가 많이 달리면 기분이 좋다 | 유형: E | 답변B: 좋아요 수는 별로 신경 쓰지 않는다 | 유형: I
+                질문2: 영화를 볼 때 | 답변A: 스토리와 연출 기법을 분석한다 | 유형: S | 답변B: 영화가 주는 메시지와 상징을 해석한다 | 유형: N
+            """, timestamp);
 
         String response = chatClient.prompt()
             .user(prompt)
