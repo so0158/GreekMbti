@@ -20,6 +20,8 @@ public class MbtiService {
     }
 
     public QuestionResponse generateQuestion(int questionNumber, String category) {
+        String specificTopic = getSpecificTopic(questionNumber, category);
+
         String prompt = String.format("""
                 You are an MBTI test expert.
 
@@ -28,35 +30,39 @@ public class MbtiService {
                 Question Number: %d
                 MBTI Category: %s
 
+                [MANDATORY UNIQUE TOPIC FOR THIS QUESTION]
+                You MUST create a question EXACTLY about this specific situation:
+                "%s"
+
+                This is a UNIQUE topic assigned ONLY to question %d. DO NOT use generic situations.
+
                 Create 1 MBTI question for %s following these rules:
 
-                [Required Rules]
-                1. All question and answer content MUST be written in **Korean only** (Absolutely mandatory)
-                2. Create a completely different situation each time
-                3. Keep questions under 30 Korean characters
-                4. Keep each answer under 40 Korean characters
-
-                [Situation Categories for Variety]
-                - Friend relationships, work/school life, travel, shopping, hobbies
-                - Problem-solving situations, planning, stressful moments
-                - SNS usage, making appointments, opinion conflicts, new challenges
-                - Spending weekends, joining gatherings, making decisions
-
-                For this question, select a **NEW situation different from previous ones**.
+                [CRITICAL RULES - NO EXCEPTIONS]
+                1. The question MUST be specifically about: "%s"
+                2. DO NOT ask about general situations like "meeting friends" or "weekend plans" unless that's the exact topic above
+                3. All question and answer content MUST be written in **Korean only** (Absolutely mandatory)
+                4. Keep questions under 35 Korean characters
+                5. Keep each answer under 45 Korean characters
+                6. Make answers clearly different to show %s contrast
 
                 Response Format (in Korean):
-                질문: [question content in Korean]
+                질문: [question specifically about the topic above in Korean]
                 답변A: [first answer in Korean] | 유형: [first letter of %s]
                 답변B: [second answer in Korean] | 유형: [second letter of %s]
 
-                Example:
+                Example (ONLY if topic is about "친구들과 노는 모습"):
                 질문: 친구들과 놀고 나면?
                 답변A: 더 놀고 싶고 에너지가 넘친다 | 유형: E
                 답변B: 집에서 혼자 쉬고 싶다 | 유형: I
             """,
             questionNumber,
             getCategoryDescription(category),
+            specificTopic,
+            questionNumber,
             getCategoryDescription(category),
+            specificTopic,
+            category,
             category,
             category
         );
@@ -76,6 +82,25 @@ public class MbtiService {
             case "TF" -> "사고(T) vs 감정(F): 의사결정 방식";
             case "JP" -> "판단(J) vs 인식(P): 생활 양식";
             default -> "MBTI 성격 유형";
+        };
+    }
+
+    private String getSpecificTopic(int questionNumber, String category) {
+        // 각 질문마다 완전히 다른 구체적인 주제 할당
+        return switch (questionNumber) {
+            case 1 -> "대규모 파티나 회식 자리가 끝난 직후의 기분과 상태";
+            case 2 -> "새로 나온 스마트폰이나 전자기기를 구매할 때 어떻게 결정하는지";
+            case 3 -> "친한 친구가 실연 당해서 울면서 전화했을 때 어떻게 반응하는지";
+            case 4 -> "처음 가보는 해외 여행을 준비하는 방식";
+            case 5 -> "회사/학교에서 새로운 프로젝트팀이 구성되어 모르는 사람들과 함께 일하게 될 때";
+            case 6 -> "갑자기 집 화장실 변기가 고장나서 물이 넘칠 때 대처 방법";
+            case 7 -> "부모님이 내가 좋아하는 진로를 반대하시는 상황에서 설득하는 방법";
+            case 8 -> "내일 중요한 발표가 있는데 친구가 갑자기 놀러 가자고 할 때";
+            case 9 -> "3일간의 긴 연휴가 생겼을 때 보내고 싶은 방식";
+            case 10 -> "회사에서 10년 뒤 자신의 모습을 그려보라고 했을 때";
+            case 11 -> "취업 준비 중 안정적인 대기업과 불안정하지만 하고 싶은 일 중 선택해야 할 때";
+            case 12 -> "친구들과 약속한 영화 시간을 깜빡해서 30분 늦게 도착했을 때";
+            default -> "일상적인 상황";
         };
     }
 
