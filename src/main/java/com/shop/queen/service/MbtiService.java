@@ -2,9 +2,11 @@ package com.shop.queen.service;
 
 import com.shop.queen.dto.QuestionResponse;
 import com.shop.queen.dto.ResultResponse;
+import com.shop.queen.dto.AllQuestionsResponse;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -19,135 +21,98 @@ public class MbtiService {
         this.chatClient = chatClientBuilder.build();
     }
 
-    public QuestionResponse generateQuestion(int questionNumber, String category) {
-        String specificTopic = getSpecificTopic(questionNumber, category);
+    // MBTI 카테고리별 질문 순서 (각 5개씩, 총 20개)
+    private static final String[] CATEGORIES = {"EI", "SN", "TF", "JP", "EI", "SN", "TF", "JP", "EI", "SN", "TF", "JP", "EI", "SN", "TF", "JP", "EI", "SN", "TF", "JP"};
 
-        String prompt = String.format("""
-                You are an MBTI test expert.
+    // 테스트 시작 시 20개 질문을 한 번에 생성
+    public AllQuestionsResponse generateAllQuestions() {
+        String prompt = """
+                You are an MBTI test expert creating questions for a personality test.
 
-                [CRITICAL] You MUST respond ONLY in Korean. Never use English, Japanese, Chinese, or any other language in your output.
+                [CRITICAL] You MUST respond ONLY in Korean.
 
-                Question Number: %d
-                MBTI Category: %s
+                Create 20 MBTI questions following these rules:
 
-                [MANDATORY UNIQUE TOPIC FOR THIS QUESTION]
-                You MUST create a question EXACTLY about this specific situation:
-                "%s"
+                [REQUIREMENTS]
+                1. Create general life situation questions (NOT Greek mythology themed)
+                2. Questions should be about everyday life, work, relationships, hobbies, etc.
+                3. All content MUST be in Korean
+                4. Keep each question under 40 Korean characters
+                5. Keep each answer under 50 Korean characters
+                6. Make each question unique and different from typical MBTI questions
 
-                This is a UNIQUE topic assigned ONLY to question %d. DO NOT use generic situations.
-
-                Create 1 MBTI question for %s following these rules:
-
-                [CRITICAL RULES - NO EXCEPTIONS]
-                1. The question MUST be specifically about: "%s"
-                2. DO NOT ask about general situations like "meeting friends" or "weekend plans" unless that's the exact topic above
-                3. All question and answer content MUST be written in **Korean only** (Absolutely mandatory)
-                4. Keep questions under 35 Korean characters
-                5. Keep each answer under 45 Korean characters
-                6. Make answers clearly different to show %s contrast
+                [QUESTION DISTRIBUTION]
+                - Questions 1, 5, 9, 13, 17: E vs I (외향 vs 내향)
+                - Questions 2, 6, 10, 14, 18: S vs N (감각 vs 직관)
+                - Questions 3, 7, 11, 15, 19: T vs F (사고 vs 감정)
+                - Questions 4, 8, 12, 16, 20: J vs P (판단 vs 인식)
 
                 Response Format (in Korean):
-                질문: [question specifically about the topic above in Korean]
-                답변A: [first answer in Korean] | 유형: [first letter of %s]
-                답변B: [second answer in Korean] | 유형: [second letter of %s]
+                질문1: [question] | 답변A: [answer] | 유형: E | 답변B: [answer] | 유형: I
+                질문2: [question] | 답변A: [answer] | 유형: S | 답변B: [answer] | 유형: N
+                질문3: [question] | 답변A: [answer] | 유형: T | 답변B: [answer] | 유형: F
+                질문4: [question] | 답변A: [answer] | 유형: J | 답변B: [answer] | 유형: P
+                ... (continue to 질문20)
 
-                Example (ONLY if topic is about "친구들과 노는 모습"):
-                질문: 친구들과 놀고 나면?
-                답변A: 더 놀고 싶고 에너지가 넘친다 | 유형: E
-                답변B: 집에서 혼자 쉬고 싶다 | 유형: I
-            """,
-            questionNumber,
-            getCategoryDescription(category),
-            specificTopic,
-            questionNumber,
-            getCategoryDescription(category),
-            specificTopic,
-            category,
-            category,
-            category
-        );
+                Example:
+                질문1: 주말에 에너지를 충전하는 방법은? | 답변A: 친구들을 만나거나 사람들과 어울린다 | 유형: E | 답변B: 집에서 혼자만의 시간을 보낸다 | 유형: I
+                질문2: 대화할 때 주로 | 답변A: 구체적인 사실과 경험을 이야기한다 | 유형: S | 답변B: 추상적인 개념이나 가능성을 이야기한다 | 유형: N
+            """;
 
         String response = chatClient.prompt()
             .user(prompt)
             .call()
             .content();
 
-        return parseQuestionResponse(response, category);
+        return parseAllQuestionsResponse(response);
     }
 
-    private String getCategoryDescription(String category) {
-        return switch (category) {
-            case "EI" -> "외향(E) vs 내향(I): 에너지를 얻는 방식";
-            case "SN" -> "감각(S) vs 직관(N): 정보를 인식하는 방식";
-            case "TF" -> "사고(T) vs 감정(F): 의사결정 방식";
-            case "JP" -> "판단(J) vs 인식(P): 생활 양식";
-            default -> "MBTI 성격 유형";
-        };
-    }
-
-    private String getSpecificTopic(int questionNumber, String category) {
-        // 각 질문마다 완전히 다른 구체적인 주제 할당
-        return switch (questionNumber) {
-            case 1 -> "대규모 파티나 회식 자리가 끝난 직후의 기분과 상태";
-            case 2 -> "새로 나온 스마트폰이나 전자기기를 구매할 때 어떻게 결정하는지";
-            case 3 -> "친한 친구가 실연 당해서 울면서 전화했을 때 어떻게 반응하는지";
-            case 4 -> "처음 가보는 해외 여행을 준비하는 방식";
-            case 5 -> "회사/학교에서 새로운 프로젝트팀이 구성되어 모르는 사람들과 함께 일하게 될 때";
-            case 6 -> "갑자기 집 화장실 변기가 고장나서 물이 넘칠 때 대처 방법";
-            case 7 -> "부모님이 내가 좋아하는 진로를 반대하시는 상황에서 설득하는 방법";
-            case 8 -> "내일 중요한 발표가 있는데 친구가 갑자기 놀러 가자고 할 때";
-            case 9 -> "3일간의 긴 연휴가 생겼을 때 보내고 싶은 방식";
-            case 10 -> "회사에서 10년 뒤 자신의 모습을 그려보라고 했을 때";
-            case 11 -> "취업 준비 중 안정적인 대기업과 불안정하지만 하고 싶은 일 중 선택해야 할 때";
-            case 12 -> "친구들과 약속한 영화 시간을 깜빡해서 30분 늦게 도착했을 때";
-            default -> "일상적인 상황";
-        };
-    }
-
-    private QuestionResponse parseQuestionResponse(String response, String category) {
+    private AllQuestionsResponse parseAllQuestionsResponse(String response) {
+        List<QuestionResponse> questions = new ArrayList<>();
         String[] lines = response.split("\n");
-        String question = "";
-        String answerA = "";
-        String typeA = "";
-        String answerB = "";
-        String typeB = "";
 
-        for (String line : lines) {
-            line = line.trim();
-            if (line.startsWith("질문:")) {
-                question = line.substring(3).trim();
-            } else if (line.startsWith("답변A:")) {
-                String[] parts = line.split("\\|");
-                answerA = parts[0].substring(5).trim();
-                if (parts.length > 1) {
-                    typeA = parts[1].replace("유형:", "").trim();
-                }
-            } else if (line.startsWith("답변B:")) {
-                String[] parts = line.split("\\|");
-                answerB = parts[0].substring(5).trim();
-                if (parts.length > 1) {
-                    typeB = parts[1].replace("유형:", "").trim();
+        for (int i = 0; i < lines.length && questions.size() < 20; i++) {
+            String line = lines[i].trim();
+            if (line.startsWith("질문")) {
+                try {
+                    // 질문1: [question] | 답변A: [answer] | 유형: E | 답변B: [answer] | 유형: I
+                    String[] parts = line.split("\\|");
+
+                    String question = parts[0].substring(parts[0].indexOf(":") + 1).trim();
+                    String answerA = parts[1].substring(parts[1].indexOf(":") + 1).trim();
+                    String typeA = parts[2].substring(parts[2].indexOf(":") + 1).trim();
+                    String answerB = parts[3].substring(parts[3].indexOf(":") + 1).trim();
+                    String typeB = parts[4].substring(parts[4].indexOf(":") + 1).trim();
+
+                    List<QuestionResponse.Answer> answers = Arrays.asList(
+                        new QuestionResponse.Answer(answerA, typeA),
+                        new QuestionResponse.Answer(answerB, typeB)
+                    );
+
+                    questions.add(new QuestionResponse(question, answers));
+                } catch (Exception e) {
+                    System.err.println("Failed to parse line: " + line);
                 }
             }
         }
 
-        // 기본값 설정 (파싱 실패 시)
-        if (question.isEmpty()) {
-            question = "질문을 생성하는 중 오류가 발생했습니다.";
-        }
-        if (typeA.isEmpty()) {
-            typeA = category.substring(0, 1);
-        }
-        if (typeB.isEmpty()) {
-            typeB = category.substring(1, 2);
+        // 20개가 안 되면 기본 질문으로 채우기
+        while (questions.size() < 20) {
+            int idx = questions.size();
+            String category = CATEGORIES[idx];
+            String typeA = category.substring(0, 1);
+            String typeB = category.substring(1, 2);
+
+            questions.add(new QuestionResponse(
+                "질문 " + (idx + 1),
+                Arrays.asList(
+                    new QuestionResponse.Answer("답변 A", typeA),
+                    new QuestionResponse.Answer("답변 B", typeB)
+                )
+            ));
         }
 
-        List<QuestionResponse.Answer> answers = Arrays.asList(
-            new QuestionResponse.Answer(answerA.isEmpty() ? "답변 A" : answerA, typeA),
-            new QuestionResponse.Answer(answerB.isEmpty() ? "답변 B" : answerB, typeB)
-        );
-
-        return new QuestionResponse(question, answers);
+        return new AllQuestionsResponse(questions);
     }
 
     public ResultResponse calculateResult(Map<String, Integer> answers) {

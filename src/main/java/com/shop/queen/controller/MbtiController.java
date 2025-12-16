@@ -4,6 +4,7 @@ import com.shop.queen.dto.AnswerRequest;
 import com.shop.queen.dto.QuestionRequest;
 import com.shop.queen.dto.QuestionResponse;
 import com.shop.queen.dto.ResultResponse;
+import com.shop.queen.dto.AllQuestionsResponse;
 import com.shop.queen.service.MbtiService;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,9 +18,9 @@ public class MbtiController {
         this.mbtiService = mbtiService;
     }
 
-    @PostMapping("/question")
-    public QuestionResponse getQuestion(@RequestBody QuestionRequest request) {
-        return mbtiService.generateQuestion(request.questionNumber(), request.category());
+    @PostMapping("/start")
+    public AllQuestionsResponse startTest() {
+        return mbtiService.generateAllQuestions();
     }
 
     @PostMapping("/result")

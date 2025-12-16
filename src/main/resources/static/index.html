@@ -12,7 +12,8 @@
         <div id="start-screen" class="screen active">
             <h1>당신은 어떤 그리스 신화 인물인가요?</h1>
             <p class="subtitle">MBTI 테스트를 통해 당신과 닮은 그리스 신화 속 인물을 찾아보세요!</p>
-            <button onclick="startTest()" class="btn-primary">테스트 시작하기</button>
+            <p id="loading-message" style="color: #888; font-size: 0.9em; margin: 10px 0;">질문을 생성하는 중입니다... (약 30초 소요)</p>
+            <button onclick="startTest()" class="btn-primary" id="start-button" style="display: none;">테스트 시작하기</button>
         </div>
 
         <!-- 질문 화면 -->
